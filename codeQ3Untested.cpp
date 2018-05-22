@@ -87,7 +87,7 @@ void moveq3(int,whi[], int whitePix){
 				rightWhi++;
 		}
 	}
-	if (leftWhi > rightWhi){
+	if (leftWhi > rightWhi ||(leftWhi > 150 && rightWhi > 150)){
 		set_motor(1,0);
 		set_motor(2,50);
 		sleep1(0,500000);
@@ -96,7 +96,6 @@ void moveq3(int,whi[], int whitePix){
 		set_motor(1,50);
 		set_motor(2,0);
 		sleep1(0,500000);
-	}
 	
 }
 
