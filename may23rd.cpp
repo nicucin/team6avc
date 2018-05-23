@@ -95,14 +95,14 @@ void moveQ2(int error){
 void moveQ3(int whi[], int whitePix){
 	int leftWhi = 0; 
 	int rightWhi = 0;
-	if (whitePix >5){	//If number white pixels is greater than 5, drive forward
+	if (whitePix >20){	//If number white pixels is greater than 5, drive forward
 		printf("See white");
 		set_motor(1,50);
 		set_motor(2,50);
 		sleep1(0,500000);
 	}
 	else{ //If cant see white
-		while(whitePix < 5){ //Loop while cant see white
+		while(whitePix < 10){ //Loop while cant see white
 			printf("cant see white");
 			int threshold = findThreshold();
 			whi[320] = {0};
@@ -122,7 +122,7 @@ void moveQ3(int whi[], int whitePix){
 				rightWhi++; 
 		}
 	
-		if (leftWhi > rightWhi ||(leftWhi > 150 && rightWhi > 150)){ //If left is greater or they are equal turn left
+		if (leftWhi > rightWhi ||(leftWhi > 140 && rightWhi > 140)){ //If left is greater or they are equal turn left
 			set_motor(1,0);
 			set_motor(2,50);
 			sleep1(0,500000);
@@ -146,7 +146,7 @@ int main () {
 	//Follow line based on error
 	while(quadrant == 2){
 		int threshold = findThreshold();
-		int whi[320] = {0};
+		int whi[320];
 		getPicture(whi, threshold);
 		int error = findError(whi);
 		moveQ2(error);
@@ -158,10 +158,10 @@ int main () {
 		//set_motor(1,40); ??
 		//set_motor(2,40);  ??
 		int threshold = findThreshold();
-		int whi[320] = {0};
+		int whi[320];
 		getPicture(whi, threshold);
 		int whitePix = getWhite (whi, threshold);
-		moveQ3(whi,whitePix);`44
+		moveQ3(whi,whitePix);
 	}
 	return 0;
 }
