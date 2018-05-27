@@ -98,7 +98,7 @@ void moveQ2(int error){
 		sleep1(1,0);
 	}
 	unsigned char v_go = 38;
-	signed char dv = error * 0.0038;
+	signed char dv = error * 0.004;
 	int vR =  v_go + dv;
 	int vL = v_go - dv;
 	printf("vL = %d\n", vL);
@@ -149,28 +149,108 @@ void moveQ3(int error, int whitePix){
 		int err = findError(whi);
 		printf("err: %d\n", err);
 		if (err < 400){
-			set_motor(2, 0);
+			set_motor(2, -40);
 			set_motor(1, 40);
-			sleep1(0, 300000);
+			sleep1(0, 150000);
 		}
 		else{
 			set_motor(2, 40);
-			set_motor(1, 0);
-			sleep1(0,300000);	
+			set_motor(1, -40);
+			sleep1(0,150000);	
 		}		
 	}
 }	
 
+//Follow walls in Q4
+void moveQ4(int count){
+	int sensorA = read_analog(0); // front
+	int sensorB = read_analog(1); // left
+	int sensorC = read_analog(2); // right
+	if (sensorA > 100){	// if the front sensor can see forward enough
+	unsigned char v_go = 38;
+	count = count + 10;
+		if (sensorB > sensorC){
+			int vR =  v_go + count;
+			int vL = v_go;
+			printf("vL = %d\n", vL);
+			printf("vR = %d\n", vR);
+			set_motor(1, vL);
+			set_motor(2, vR);
+		}
+		else if (sensorB > sensorC){
+			int vR =  v_go;
+			int vL = v_go + count;
+			printf("vL = %d\n", vL);
+			printf("vR = %d\n", vR);
+			set_motor(1, vL);
+			set_motor(2, vR);
+		}
+		else {
+			count = 0;
+		}
+	else if ((sensorA < 100) && (sensorA > 20)){ // if the sensor is close to a wall, but not against it
+		if (sensorB > sensorC){
+			set_motor(1, 40);
+			set_motor(2, -40);
+			sleep1(0, 150000);
+		}
+		else if (sensorB > sensorC){
+			set_motor(1, -40);
+			set_motor(2, 40);
+			sleep1(0, 150000);
+		}		
+	}
+	else { // if the sensor is too close to the wall, reverse 
+			set_motor(1, -40);
+			set_motor(2, -40);
+			sleep1(0, 150000);		
+	}
+	set_motor(1, 0);
+	set_motor(2, 0);
+}
+
 void checkQuadrant(int Pix) {
 	if (quadrant == 2) {
-		if (Pix>=250) { // dealing with thick line
+		if (Pix>=200) { // dealing with thick line
 			quadrant = 3;
 			set_motor(1,0);
-			set_motor(2,0);
-			sleep1(1, 0);
-			set_motor(1, 50);
-			set_motor(2, 50);
-			sleep1(0, 250000);
+			set_motor(2,0);			
+			
+			int threshold = findThreshold();
+			int whi[320];
+			getPicture(whi, threshold);
+			int error = findError(whi);
+			int whitePix = getWhite(threshold);
+			while (whitePix > 200){ // move forward passed thicc white line
+				set_motor(1, 40);
+				set_motor(2, 40);
+				sleep1(0, 15000);				
+				set_motor(1, 0);
+				set_motor(2, 0);
+				sleep1(0, 15000);				
+			}
+			
+			set_motor(1, -40);
+			set_motor(2, -40);
+			sleep1(0, 15000);
+			while ((error > 100) || (error < 100)){ // attempt to straighten self
+				if (error > 100){
+				set_motor(1, 40);
+				set_motor(2, -40);
+				sleep1(0, 15000);				
+				set_motor(1, 0);
+				set_motor(1, 0);
+				sleep1(0, 15000);
+				}
+				if (error < 100){
+				set_motor(1, -40);
+				set_motor(2, 40);
+				sleep1(0, 15000);				
+				set_motor(1, 0);
+				set_motor(1, 0);
+				sleep1(0, 15000);
+				}
+			}
 			printf("Quadrant: 3\n");
 		}
 	else if (quadrant == 3){
@@ -208,7 +288,6 @@ int main () {
 		checkQuadrant(whitePix);
 	}
 	while(quadrant == 3){
-		sleep1(1,0);
 		int threshold = findThreshold();
 		int whi[320];
 		getPicture(whi, threshold);
@@ -218,5 +297,11 @@ int main () {
 		int redPix = getRed(threshold);
 		checkQuadrant(redPix);
 	}
+	while(quadrant == 4){		
+		set_motor(1, 0);
+		set_motor(2, 0);
+		sleep1(0, 15000);
+		int count = 0;
+		moveQ4(count);
 	return 0;
 }
